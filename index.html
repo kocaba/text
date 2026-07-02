@@ -16,7 +16,18 @@ header{height:56px;background:#1976d2;color:#fff;display:flex;align-items:center
 .row .name{flex:1;cursor:pointer}
 .icon{cursor:pointer;padding:4px 6px;border-radius:4px}
 .del1{background:#ffe08a}.del2{background:#ff6b6b;color:#fff}
+
+/* Покращений адаптивний селектор з переносом рядків для мобільних */
 input,textarea,select{width:100%;padding:10px;margin-bottom:10px;border:1px solid #ccc;border-radius:4px;font-size:15px}
+select {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  line-height: 1.4;
+}
+select option {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+}
 
 .top{display:flex;gap:8px;margin:10px 0;flex-wrap:wrap}
 .top input{flex:2;min-width:200px;margin-bottom:0}
@@ -27,7 +38,7 @@ button:hover{opacity:0.9}
 .note{display:flex;align-items:center;padding:8px;background:#fff;border:1px solid #ddd;margin:4px 0;border-radius:6px}
 .note.active{background:#d8ebff} .title{flex:1;cursor:pointer}
 
-/* Оновлені стилі модальних вікон для мобільних */
+/* Стилі модальних вікон */
 .settings-panel{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;box-shadow:0 0 15px #0004;z-index:12;width:92%;max-width:520px;max-height:88vh;overflow-y:auto;border-radius:8px}
 .settings-panel.show{display:block}
 .settings-panel h3{margin-top:0;margin-bottom:15px}
@@ -35,13 +46,11 @@ button:hover{opacity:0.9}
 .hr-menu{border:0;border-top:1px solid #ddd;margin:15px 0}
 .btn-settings{background:#757575;width:100%;margin-top:10px}
 
-/* Контейнер для поля вводу з хрестиком */
 .prompt-wrap{position:relative;width:100%}
 .prompt-wrap textarea{padding-right:35px;min-height:80px;resize:vertical}
 .clear-txt-btn{position:absolute;right:10px;top:8px;font-size:22px;color:#aaa;cursor:pointer;user-select:none;line-height:1}
 .clear-txt-btn:hover{color:#666}
 
-/* Блок опису вибраного стилю ШІ */
 .style-desc-box{background:#f5f7fa;padding:12px;border-left:4px solid #1976d2;margin-bottom:15px;font-size:14px;color:#444;line-height:1.4;border-radius:0 4px 4px 0}
 
 .editor-container { background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 15px; margin-top: 10px; }
@@ -80,13 +89,21 @@ button:hover{opacity:0.9}
 <input type="password" id="geminiKey" placeholder="AIzaSy...">
 <label>Оберіть модель:</label>
 <select id="aiModel" onchange="updateSelectColor(this)">
-<optgroup label="OpenAI (ChatGPT)" class="opt-gpt">
-<option value="gpt-4o-mini" class="opt-gpt">GPT-4o Mini (Швидка та економна)</option>
-<option value="gpt-4o" class="opt-gpt">GPT-4o (Глибока логіка, деталі)</option>
+<optgroup label="OpenAI (Сценарії & Хуки)" class="opt-gpt">
+<option value="gpt-4o-mini" class="opt-gpt">$0.30/1M | GPT-4o Mini — Базові чернетки та прості репліки</option>
+<option value="o3-mini" class="opt-gpt">$2.00/1M | o3-Mini — Логіка роздумів та зв'язок сцен</option>
+<option value="gpt-4o" class="opt-gpt">$5.00/1M | GPT-4o — Прописування характерів та деталей</option>
+<option value="gpt-5.4" class="opt-gpt">$7.00/1M | GPT-5.4 — Плавні живі діалоги й креатив</option>
+<option value="gpt-5.5" class="opt-gpt">$12.00/1M | GPT-5.5 — Кінематографічні фрази та метафори</option>
+<option value="o1" class="opt-gpt">$15.00/1M | o1 — Складні багаторівневі сюжети</option>
 </optgroup>
-<optgroup label="Google Gemini" class="opt-gemini">
-<option value="gemini-1.5-flash" class="opt-gemini">Gemini 1.5 Flash (Швидкі ідеї)</option>
-<option value="gemini-1.5-pro" class="opt-gemini">Gemini 1.5 Pro (Психологія, драма)</option>
+<optgroup label="Google Gemini (Емоції & Драма)" class="opt-gemini">
+<option value="gemini-1.5-flash" class="opt-gemini">$0.08/1M | Gemini 1.5 Flash — Швидкі накидки та експрес-хуки</option>
+<option value="gemini-2.0-flash" class="opt-gemini">$0.15/1M | Gemini 2.0 Flash — Трендові тези та вірусні ідеї</option>
+<option value="gemini-2.0-flash-thinking-exp" class="opt-gemini">$2.00/1M | Gemini 2.0 Thinking — Покрокова сюжетна логіка</option>
+<option value="gemini-1.5-pro" class="opt-gemini">$2.50/1M | Gemini 1.5 Pro — Емоційні сцени та психологізм</option>
+<option value="gemini-2.0-pro" class="opt-gemini">$6.50/1M | Gemini 2.0 Pro — Глибока драма та складні діалоги</option>
+<option value="gemini-2.5-pro" class="opt-gemini">$9.00/1M | Gemini 2.5 Pro — Преміальний художній стиль</option>
 </optgroup>
 </select>
 <div style="display:flex;gap:10px;margin-top:15px;">
@@ -97,7 +114,7 @@ button:hover{opacity:0.9}
 
 <!-- МОДАЛЬНЕ ВІКНО ГЕНЕРАЦІЇ -->
 <div id="generationModal" class="settings-panel">
-<h3>Параметри генерації сценарію</h3>
+<h3>Параметри generation сценарію</h3>
 
 <label>Скільки нових сцен створити?</label>
 <input type="number" id="genCount" value="3" min="1" max="10">
@@ -132,7 +149,7 @@ button:hover{opacity:0.9}
 <div class="top">
 <input id="newTitle" placeholder="Назва сцени чи кадру">
 <button onclick="newNote()">Додати</button>
-<button class="btn-ai" onclick="toggleGenerationModal(true)">✨ Згенерувати наступні сценарії</button>
+<button class="btn-ai" onclick="toggleGenerationModal(true)">✨</button>
 </div>
 <div id="notes"></div>
 
@@ -156,7 +173,6 @@ comedy: "Максимально розважальний формат, житт�
 mystery: "Ефект 'тільки для своїх', клікбейт-загадки та недосказаність. Змушує людину додивитися відео до кінця, щоб дізнатися приховану правду."
 };
 
-// Безпечне завантаження бази даних
 let db;
 try {
   db = JSON.parse(localStorage.getItem("notesdb"));
@@ -181,7 +197,6 @@ generationModal.classList.remove("show");
 ov.classList.remove("show");
 }
 
-// Захищена функція зміни кольорів селектора моделей
 function updateSelectColor(selectEl) {
 if(!selectEl) return;
 if(selectEl.selectedIndex < 0) selectEl.selectedIndex = 0;
@@ -197,7 +212,6 @@ q("geminiKey").value = localStorage.getItem("ai_gemini_key") || "";
 
 let savedModel = localStorage.getItem("ai_model") || "gpt-4o-mini";
 q("aiModel").value = savedModel;
-// Перевірка на випадок застарілого значення моделі в localStorage
 if(q("aiModel").selectedIndex === -1) {
   q("aiModel").value = "gpt-4o-mini";
 }
@@ -391,7 +405,8 @@ if (!count || isNaN(count) || count <= 0) return alert("Вкажіть коре�
 const model = localStorage.getItem("ai_model") || "gpt-4o-mini";
 const gptKey = localStorage.getItem("ai_gpt_key");
 const geminiKey = localStorage.getItem("ai_gemini_key");
-const isGPT = model.startsWith("gpt");
+
+const isGPT = !model.startsWith("gemini");
 
 if (isGPT && !gptKey) return alert("Введіть API ключ OpenAI в налаштуваннях.");
 if (!isGPT && !geminiKey) return alert("Введіть API ключ Gemini в налаштуваннях.");
@@ -403,7 +418,7 @@ let styleInstruction = "";
 if (selectedStyle === "satire") {
   styleInstruction = "Гостра сатира, іронія, легкий сарказм та уїдливі, чіпляючі хуки (наприклад: 'Алгоритм — не твоя мама, він не буде хвалити чернетку').";
 } else if (selectedStyle === "drama") {
-  styleInstruction = "Глибокий психологічний тригер, драма, створення таємниці та сильного емоційного залучення, що б'є по болях людей.";
+  styleInstruction = "Глибокий психологічний тригер, drama, створення таємниці та сильного емоційного залучення, що б'є по болях людей.";
 } else if (selectedStyle === "expert") {
   styleInstruction = "Професійна, авторитетна подача, руйнування міфів, розкриття секретів професії. Тон експерта, який знає про що говорить.";
 } else if (selectedStyle === "comedy") {
@@ -530,7 +545,6 @@ btnGen.disabled = false;
 }
 }
 
-// Запуск при завантаженні сторінки
 loadSettings();
 render();
 </script>
