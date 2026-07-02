@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Нотатки з ШІ (Сценарист 2026)</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial;background:#eef2f5}
+header{height:56px;background:#1976d2;color:#fff;display:flex;align-items:center;padding:0 15px;gap:15px}
+#menu{font-size:28px;cursor:pointer}
+.wrap{padding:15px}
+#drawer{position:fixed;left:-70%;top:0;width:70%;height:100%;background:#fff;transition:.25s;padding:15px;overflow:auto;box-shadow:3px 0 10px #0005;z-index:10}
+#drawer.open{left:0}#ov{display:none;position:fixed;inset:0;background:#0005;z-index:9}#ov.show{display:block}
+.row{display:flex;align-items:center;gap:8px;padding:8px;border-radius:6px;margin:4px 0;background:#f4f4f4}
+.row.active{background:#d8ebff}
+.row .name{flex:1;cursor:pointer}
+.icon{cursor:pointer;padding:4px 6px;border-radius:4px}
+.del1{background:#ffe08a}.del2{background:#ff6b6b;color:#fff}
+input,textarea,select{width:100%;padding:10px;margin-bottom:10px;border:1px solid #ccc;border-radius:4px;font-size:15px}
+
+.top{display:flex;gap:8px;margin:10px 0;flex-wrap:wrap}
+.top input{flex:2;min-width:200px;margin-bottom:0}
+.top button{margin-bottom:0}
+button{padding:10px;background:#1976d2;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:15px}
+button:hover{opacity:0.9}
+.btn-ai{background:#2e7d32;margin-left:auto}
+.note{display:flex;align-items:center;padding:8px;background:#fff;border:1px solid #ddd;margin:4px 0;border-radius:6px}
+.note.active{background:#d8ebff} .title{flex:1;cursor:pointer}
+
+/* Оновлені стилі модальних вікон для мобільних */
+.settings-panel{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;box-shadow:0 0 15px #0004;z-index:12;width:92%;max-width:520px;max-height:88vh;overflow-y:auto;border-radius:8px}
+.settings-panel.show{display:block}
+.settings-panel h3{margin-top:0;margin-bottom:15px}
+.settings-panel label{display:block;font-weight:bold;margin-bottom:5px;font-size:14px;color:#444}
+.hr-menu{border:0;border-top:1px solid #ddd;margin:15px 0}
+.btn-settings{background:#757575;width:100%;margin-top:10px}
+
+/* Контейнер для поля вводу з хрестиком */
+.prompt-wrap{position:relative;width:100%}
+.prompt-wrap textarea{padding-right:35px;min-height:80px;resize:vertical}
+.clear-txt-btn{position:absolute;right:10px;top:8px;font-size:22px;color:#aaa;cursor:pointer;user-select:none;line-height:1}
+.clear-txt-btn:hover{color:#666}
+
+/* Блок опису вибраного стилю ШІ */
+.style-desc-box{background:#f5f7fa;padding:12px;border-left:4px solid #1976d2;margin-bottom:15px;font-size:14px;color:#444;line-height:1.4;border-radius:0 4px 4px 0}
+
+.editor-container { background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 15px; margin-top: 10px; }
+.desc-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #e0e0e0; }
+.desc-num { font-size: 15px; font-weight: bold; color: #1976d2; min-width: 22px; padding-top: 10px; text-align: right; }
+.desc-text-wrap { flex: 1; display: flex; flex-direction: column; }
+.desc-textarea { width: 100%; height: auto; min-height: 40px; margin-bottom: 0; resize: none; border: 1px solid transparent; font-size: 15px; line-height: 1.5; padding: 8px; border-radius: 4px; overflow: hidden; display: block; }
+.desc-textarea:hover { border-color: #eee; }
+.desc-textarea:focus { border-color: #1976d2; background: #fafafa; outline: none; }
+
+.desc-placeholder-row { display: flex; gap: 12px; padding: 12px 0; cursor: text; }
+.desc-placeholder-text { flex: 1; color: #9e9e9e; font-size: 15px; padding: 8px; font-style: italic; user-select: none; }
+
+.opt-gpt { background-color: #e8f5e9 !important; color: #1b5e20; }
+.opt-gemini { background-color: #e3f2fd !important; color: #0d47a1; }
+</style>
+</head>
+<body>
+<div id="ov"></div>
+
+<!-- Меню ліворуч -->
+<div id="drawer">
+<h2>Папки</h2>
+<div id="folders"></div>
+<button onclick="newFolder()">+ Нова папка</button>
+<hr class="hr-menu">
+<button class="btn-settings" onclick="toggleSettings(true)">⚙ Налаштування ШІ</button>
+</div>
+
+<!-- Модалка налаштувань API ключів -->
+<div id="settingsModal" class="settings-panel">
+<h3>Налаштування ШІ & Моделі</h3>
+<label>API Ключ OpenAI:</label>
+<input type="password" id="gptKey" placeholder="sk-...">
+<label>API Ключ Gemini:</label>
+<input type="password" id="geminiKey" placeholder="AIzaSy...">
+<label>Оберіть модель:</label>
+<select id="aiModel" onchange="updateSelectColor(this)">
+<optgroup label="OpenAI (ChatGPT)" class="opt-gpt">
+<option value="gpt-4o-mini" class="opt-gpt">GPT-4o Mini (Швидка та економна)</option>
+<option value="gpt-4o" class="opt-gpt">GPT-4o (Глибока логіка, деталі)</option>
+</optgroup>
+<optgroup label="Google Gemini" class="opt-gemini">
+<option value="gemini-1.5-flash" class="opt-gemini">Gemini 1.5 Flash (Швидкі ідеї)</option>
+<option value="gemini-1.5-pro" class="opt-gemini">Gemini 1.5 Pro (Психологія, драма)</option>
+</optgroup>
+</select>
+<div style="display:flex;gap:10px;margin-top:15px;">
+<button onclick="saveSettings()" style="flex:1;">Зберегти</button>
+<button onclick="toggleSettings(false)" style="flex:1;background:#9e9e9e;">Закрити</button>
+</div>
+</div>
+
+<!-- МОДАЛЬНЕ ВІКНО ГЕНЕРАЦІЇ -->
+<div id="generationModal" class="settings-panel">
+<h3>Параметри генерації сценарію</h3>
+
+<label>Скільки нових сцен створити?</label>
+<input type="number" id="genCount" value="3" min="1" max="10">
+
+<label>Оберіть стиль хуків:</label>
+<select id="generationStyle" onchange="updateStyleDescription()">
+<option value="standard">🎯 Класичний хук</option>
+<option value="satire">🔥 Сатиричний хук</option>
+<option value="drama">🧠 Психологічний / Драма</option>
+<option value="expert">💎 Експертний / Авторитетний</option>
+<option value="comedy">🤪 Гумористичний / Життєвий</option>
+<option value="mystery">🤫 Інтригуючий / Секретний</option>
+</select>
+
+<!-- Блок динамічного опису стилю -->
+<div id="styleDesc" class="style-desc-box"></div>
+
+<label>Про що писати / Додатковий контекст:</label>
+<div class="prompt-wrap">
+<textarea id="customPrompt" placeholder="Наприклад: згадай про знижку 20%, фокусуйся на болях клієнта, пиши емоційніше..." oninput="saveCustomPrompt()"></textarea>
+<span class="clear-txt-btn" onclick="clearPromptText()">×</span>
+</div>
+
+<div style="display:flex;gap:10px;margin-top:15px;">
+<button id="btnStartGen" onclick="runAIGeneration()" style="flex:2;background:#2e7d32;">✨ Згенерувати</button>
+<button onclick="toggleGenerationModal(false)" style="flex:1;background:#9e9e9e;">Скасувати</button>
+</div>
+</div>
+
+<header><div id="menu">☰</div><b id="current"></b></header>
+<div class="wrap">
+<div class="top">
+<input id="newTitle" placeholder="Назва сцени чи кадру">
+<button onclick="newNote()">Додати</button>
+<button class="btn-ai" onclick="toggleGenerationModal(true)">✨ Згенерувати наступні сценарії</button>
+</div>
+<div id="notes"></div>
+
+<div class="editor-container" id="editorContainer" style="display:none;">
+<div style="font-size:14px;font-weight:bold;color:#444;margin-bottom:5px;">Опис та кроки сценарію:</div>
+<div id="descList"></div>
+<div class="desc-placeholder-row" onclick="inlineAddDescItem()">
+<div class="desc-num" id="nextIndexNum">1.</div>
+<div class="desc-placeholder-text">+ Додати новий пункт сценарію...</div>
+</div>
+</div>
+</div>
+
+<script>
+const STYLES_INFO = {
+standard: "Чітко, по справі, без зайвої води. Сильний класичний хук, який одразу виділяє головну користь і викликає інтерес дізнатися суть.",
+satire: "Гостра сатира, іронія, легкий сарказм та уїдливі тези (наприклад: 'Алгоритм — не твоя мама, він не буде хвалити чернетку'). Ламає шаблони.",
+drama: "Глибокий психологічний тригер, створення драми та загадки. Максимальне емоційне залучення, що б'є точно по головних болях аудиторії.",
+expert: "Професійна подача, руйнування поширених міфів та демонстрація глибоких знань. Формує високу довіру до автора як до профі.",
+comedy: "Максимально розважальний формат, життєвий гумор, самоіронія чи неочікуваний абсурд. Найкраще підходить для завіруснення.",
+mystery: "Ефект 'тільки для своїх', клікбейт-загадки та недосказаність. Змушує людину додивитися відео до кінця, щоб дізнатися приховану правду."
+};
+
+// Безпечне завантаження бази даних
+let db;
+try {
+  db = JSON.parse(localStorage.getItem("notesdb"));
+} catch(e) { db = null; }
+
+if (!db || !db.folders || !Array.isArray(db.folders) || db.folders.length === 0) {
+  db = { folders: [{ name: "Папка 1", notes: [] }], cf: 0, cn: -1 };
+}
+if (typeof db.cf !== 'number') db.cf = 0;
+if (typeof db.cn !== 'number') db.cn = -1;
+
+function q(i){return document.getElementById(i)}
+function save(){localStorage.setItem("notesdb",JSON.stringify(db))}
+
+const drawer=q("drawer"),ov=q("ov"),settingsModal=q("settingsModal"),generationModal=q("generationModal");
+
+q("menu").onclick=()=>{drawer.classList.add("open");ov.classList.add("show")}
+ov.onclick=()=>{
+drawer.classList.remove("open");
+settingsModal.classList.remove("show");
+generationModal.classList.remove("show");
+ov.classList.remove("show");
+}
+
+// Захищена функція зміни кольорів селектора моделей
+function updateSelectColor(selectEl) {
+if(!selectEl) return;
+if(selectEl.selectedIndex < 0) selectEl.selectedIndex = 0;
+const selectedOpt = selectEl.options[selectEl.selectedIndex];
+if(selectedOpt) {
+  selectEl.className = selectedOpt.className;
+}
+}
+
+function loadSettings() {
+q("gptKey").value = localStorage.getItem("ai_gpt_key") || "";
+q("geminiKey").value = localStorage.getItem("ai_gemini_key") || "";
+
+let savedModel = localStorage.getItem("ai_model") || "gpt-4o-mini";
+q("aiModel").value = savedModel;
+// Перевірка на випадок застарілого значення моделі в localStorage
+if(q("aiModel").selectedIndex === -1) {
+  q("aiModel").value = "gpt-4o-mini";
+}
+
+q("customPrompt").value = localStorage.getItem("ai_custom_prompt") || "";
+updateSelectColor(q("aiModel"));
+updateStyleDescription();
+}
+
+function saveSettings() {
+localStorage.setItem("ai_gpt_key", q("gptKey").value.trim());
+localStorage.setItem("ai_gemini_key", q("geminiKey").value.trim());
+localStorage.setItem("ai_model", q("aiModel").value);
+alert("Налаштування збережено!");
+toggleSettings(false);
+}
+
+function saveCustomPrompt() {
+localStorage.setItem("ai_custom_prompt", q("customPrompt").value);
+}
+
+function clearPromptText() {
+q("customPrompt").value = "";
+localStorage.setItem("ai_custom_prompt", "");
+q("customPrompt").focus();
+}
+
+function updateStyleDescription() {
+const el = q("generationStyle");
+if(!el) return;
+const selected = el.value;
+q("styleDesc").textContent = STYLES_INFO[selected] || "";
+}
+
+function toggleSettings(show) {
+if(show) { loadSettings(); settingsModal.classList.add("show"); ov.classList.add("show"); drawer.classList.remove("open"); }
+else { settingsModal.classList.remove("show"); ov.classList.remove("show"); }
+}
+
+function toggleGenerationModal(show) {
+if(show) { loadSettings(); generationModal.classList.add("show"); ov.classList.add("show"); }
+else { generationModal.classList.remove("show"); ov.classList.remove("show"); }
+}
+
+function render(){
+if(!db.folders[db.cf]) db.cf = 0;
+q("current").textContent=db.folders[db.cf].name;
+renderFolders();renderNotes();
+}
+
+function newFolder(){
+let n=prompt("Назва папки (Проекту)"); if(!n)return;
+db.folders.push({name:n,notes:[]});save();render();
+}
+
+function renderFolders(){
+let box=q("folders");box.innerHTML="";
+db.folders.forEach((f,i)=>{
+let r=document.createElement("div");r.className="row"+(i==db.cf?" active":"");
+let nm=document.createElement("div");nm.className="name";nm.textContent="📁 "+f.name;
+nm.onclick=()=>{db.cf=i;db.cn=-1;save();render();drawer.classList.remove("open");ov.click()}
+let ed=document.createElement("div");ed.className="icon";ed.innerHTML="✏";
+ed.onclick=(e)=>{e.stopPropagation();let n=prompt("Нова назва",f.name);if(n){f.name=n;save();render();}}
+let del=document.createElement("div");del.className="icon";del.innerHTML="🗑";
+let st=0,t;
+del.onclick=(e)=>{
+e.stopPropagation();st++;clearTimeout(t);
+if(st==1){
+del.classList.add("del2");
+}
+else{
+if(db.folders.length==1){alert("Останню папку видаляти не можна");st=0;del.className="icon";return}
+if(f.notes.length){alert("Папка не порожня");st=0;del.className="icon";return}
+db.folders.splice(i,1);if(db.cf>=db.folders.length)db.cf=0;db.cn=-1;save();render();return}
+t=setTimeout(()=>{st=0;del.className="icon"},4000)
+}
+r.append(nm,ed,del);box.append(r);
+})
+}
+
+function newNote(){
+let t=q("newTitle").value.trim();if(!t)return;
+db.folders[db.cf].notes.push({title:t,descItems:[]});
+q("newTitle").value="";save();renderNotes();
+}
+
+function renderNotes(){
+let box=q("notes");box.innerHTML="";
+let notes=db.folders[db.cf].notes;
+notes.forEach((n,i)=>{
+let r=document.createElement("div");r.className="note"+(i==db.cn?" active":"");
+let tt=document.createElement("div");tt.className="title";tt.textContent=n.title;
+tt.onclick=()=>{
+db.cn=i;
+renderDescList();
+renderNotes();
+}
+let ed=document.createElement("div");ed.className="icon";ed.innerHTML="✏";
+ed.onclick=(e)=>{e.stopPropagation();let x=prompt("Нова назва",n.title);if(x){n.title=x;save();renderNotes();}}
+let del=document.createElement("div");del.className="icon";del.innerHTML="🗑";
+let st=0,t;
+del.onclick=(e)=>{
+e.stopPropagation();st++;clearTimeout(t);
+if(st==1){
+del.classList.add("del2");
+}
+else{
+notes.splice(i,1);
+if(db.cn==i){db.cn=-1;q("editorContainer").style.display="none"}
+save();renderNotes();return}
+t=setTimeout(()=>{st=0;del.className="icon"},4000)
+}
+r.append(tt,ed,del);box.append(r);
+});
+if(db.cn<0) { q("editorContainer").style.display="none"; } else { q("editorContainer").style.display="block"; }
+}
+
+function renderDescList(){
+let container = q("descList");
+container.innerHTML = "";
+if(db.cn < 0) return;
+
+let note = db.folders[db.cf].notes[db.cn];
+if(!note.descItems) note.descItems = [];
+
+note.descItems.forEach((item, index)=>{
+let row = document.createElement("div");
+row.className = "desc-item";
+row.innerHTML = `
+<div class="desc-num">${index+1}.</div>
+<div class="desc-text-wrap">
+<textarea class="desc-textarea" oninput="updateDescText(${index}, this); autoResize(this)" onblur="clearIfEmpty(${index}, this)">${item.text}</textarea>
+</div>`;
+container.appendChild(row);
+});
+
+setTimeout(() => {
+document.querySelectorAll('.desc-textarea').forEach(el => autoResize(el));
+}, 20);
+
+q("nextIndexNum").textContent = (note.descItems.length + 1) + ".";
+}
+
+function autoResize(el) {
+if(!el) return;
+el.style.height = 'auto';
+el.style.height = el.scrollHeight + 'px';
+}
+
+function inlineAddDescItem(){
+if(db.cn < 0) return;
+let note = db.folders[db.cf].notes[db.cn];
+if(!note.descItems) note.descItems = [];
+
+note.descItems.push({text: ""});
+save();
+renderDescList();
+
+setTimeout(() => {
+let textareas = document.querySelectorAll(".desc-textarea");
+if(textareas.length > 0) {
+let lastTa = textareas[textareas.length - 1];
+lastTa.focus();
+autoResize(lastTa);
+}
+}, 30);
+}
+
+function updateDescText(index, el){
+db.folders[db.cf].notes[db.cn].descItems[index].text = el.value;
+save();
+}
+
+function clearIfEmpty(index, el){
+if(el.value.trim() === "") {
+let note = db.folders[db.cf].notes[db.cn];
+note.descItems.splice(index, 1);
+save();
+renderDescList();
+}
+}
+
+async function runAIGeneration() {
+const currentFolder = db.folders[db.cf];
+const notes = currentFolder.notes || [];
+
+const countVal = q("genCount").value;
+const count = parseInt(countVal);
+if (!count || isNaN(count) || count <= 0) return alert("Вкажіть коректну кількість сцен.");
+
+const model = localStorage.getItem("ai_model") || "gpt-4o-mini";
+const gptKey = localStorage.getItem("ai_gpt_key");
+const geminiKey = localStorage.getItem("ai_gemini_key");
+const isGPT = model.startsWith("gpt");
+
+if (isGPT && !gptKey) return alert("Введіть API ключ OpenAI в налаштуваннях.");
+if (!isGPT && !geminiKey) return alert("Введіть API ключ Gemini в налаштуваннях.");
+
+const selectedStyle = q("generationStyle").value;
+const customPromptText = q("customPrompt").value.trim();
+
+let styleInstruction = "";
+if (selectedStyle === "satire") {
+  styleInstruction = "Гостра сатира, іронія, легкий сарказм та уїдливі, чіпляючі хуки (наприклад: 'Алгоритм — не твоя мама, він не буде хвалити чернетку').";
+} else if (selectedStyle === "drama") {
+  styleInstruction = "Глибокий психологічний тригер, драма, створення таємниці та сильного емоційного залучення, що б'є по болях людей.";
+} else if (selectedStyle === "expert") {
+  styleInstruction = "Професійна, авторитетна подача, руйнування міфів, розкриття секретів професії. Тон експерта, який знає про що говорить.";
+} else if (selectedStyle === "comedy") {
+  styleInstruction = "Гумористичний, життєвий стиль, самоіронія, легкі жарти чи кумедний абсурд, який чіпляє звичайних людей з першої секунди.";
+} else if (selectedStyle === "mystery") {
+  styleInstruction = "Інтригуючий тон, ефект секретності або 'тільки для своїх'. Створюй недосказаність, яка змушує додивитися до кінця.";
+} else {
+  styleInstruction = "Класичний, прямолінійний, але сильний блогерський хук. Чітко, по справі, без зайвих метафор, але так, щоб викликати інтерес дізнатися суть.";
+}
+
+let userCustomInstructions = "";
+if (customPromptText) {
+  userCustomInstructions = `\n⚠️ КРИТИЧНО ВАЖЛИВА ВИМОГА ВІД КОРИСТУВАЧА. Обов'язково адаптуй контент под цей опис:\n"${customPromptText}"\n`;
+}
+
+let projectContext = notes.map((n, idx) => {
+let subItems = (n.descItems || []).map((d, i) => `    - Крок ${i+1}: ${d.text}`).join("\n");
+return `${idx+1}. Сцена: "${n.title}"\n${subItems || "    (Опис чи кроки відсутні)"}`;
+}).join("\n\n");
+
+const systemPrompt = `Ти — досвідчений ШІ-сценарист та контент-стратег. Твоє завдання — проаналізувати наявні сцени проекту та написати логічне продовження історії у вигляді нових сцен.
+
+Поточний список сцен у проекті:
+${projectContext || "(проект порожній, придумай початок)"}
+
+Згенеруй рівно ${count} НАСТУПНИХ нових окремих сцен. Не редагуй і не змінюй наявні!
+${userCustomInstructions}
+⚠️ СУВОРІ ВИМОГИ ДО РОЗДІЛЕННЯ СТИЛІВ ЗАГОЛОВКА ТА ОПИСУ:
+
+1. НАЗВА СЦЕНИ (title) — це ХУК ДЛЯ ГЛЯДАЧА. Вона має бути написана строго у стилі: ${styleInstruction}
+
+2. ВНУТРІШНІ ПУНКТИ/ОПИСИ (descItems) — це ШПАРГАЛКА ВИКЛЮЧНО ДЛЯ АВТОРА (він не буде читати це в кадрі). 
+   - Пиши це МАКСИМАЛЬНО ПРОСТОЮ МОВОЮ, як для дитини!
+   - Жодних завуалауваних фразочок чи абстрактної філософії всередині описів. Автор повинен чітко прочитати і моментально зрозуміти задачу.
+   - Спілкуйся з автором як близький друг: використовуй зрозумілий живий сленг, яскраві, прості життєві метафори, але тримай суть кристально чистою та розжованою до деталей.
+   - Згенеруй від 2 до 4 таких зрозумілих внутрішніх підпунктів для кожної сцени.
+
+Поверни відповідь виключно у форматі JSON-об'єкта, що містить масив сцен під ключем "scenes". Жодного тексту крім JSON.
+
+Приклад структури:
+{
+  "scenes": [
+    {
+      "title": "[Хук відповідно до обраного стилю]",
+      "descItems": [
+        "[Конкретний розжований крок простішою мовою для автора]",
+        "[Наступний чіткий крок-пояснення]"
+      ]
+    }
+  ]
+}`;
+
+const userPrompt = `Проаналізуй контекст, врахуй побажання користувача і згенеруй рівно ${count} наступних сцен. Заголовки — хуки у стилі '${selectedStyle}', а описи всередині — проста шпаргалка для мене. Відповідь — суворо JSON об'єкт {"scenes": [...]}`;
+
+const btnGen = q("btnStartGen");
+const originalText = btnGen.textContent;
+btnGen.textContent = "⏳ Прораховуємо стилі...";
+btnGen.disabled = true;
+
+try {
+let responseText = "";
+
+if (isGPT) {
+const res = await fetch("https://api.openai.com/v1/chat/completions", {
+method: "POST",
+headers: { "Content-Type": "application/json", "Authorization": `Bearer ${gptKey}` },
+body: JSON.stringify({
+model: model,
+messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
+response_format: { type: "json_object" }
+})
+});
+const data = await res.json();
+if(data.error) throw new Error(data.error.message);
+responseText = data.choices[0].message.content;
+} else {
+const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`, {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({
+contents: [{ parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
+generationConfig: { responseMimeType: "application/json" }
+})
+});
+const data = await res.json();
+if(data.error) throw new Error(data.error.message);
+responseText = data.candidates[0].content.parts[0].text;
+}
+
+let jsonStart = responseText.indexOf('{');
+let jsonEnd = responseText.lastIndexOf('}');
+if (jsonStart === -1 || jsonEnd === -1) throw new Error("ШІ не надіслав структуровані дані JSON.");
+
+let cleanJsonText = responseText.substring(jsonStart, jsonEnd + 1);
+let parsedData = JSON.parse(cleanJsonText);
+
+if (parsedData.scenes && Array.isArray(parsedData.scenes)) {
+parsedData.scenes.forEach(scene => {
+let titleText = scene.title ? scene.title.toString().trim() : "";
+let descTexts = Array.isArray(scene.descItems) ? scene.descItems : [];
+
+if (titleText !== "") {
+let formattedDescItems = descTexts.map(t => ({ text: t.toString().trim() }));
+notes.push({ title: titleText, descItems: formattedDescItems });
+}
+});
+
+save();
+renderNotes();
+if(db.cn >= 0) renderDescList();
+
+toggleGenerationModal(false);
+alert(`Нові сценарії успішно додано!`);
+} else {
+throw new Error("Не вдалося розпарсити структуру з відповіді.");
+}
+
+} catch (err) {
+console.error(err);
+alert("Помилка генерації: " + err.message);
+} finally {
+btnGen.textContent = originalText;
+btnGen.disabled = false;
+}
+}
+
+// Запуск при завантаженні сторінки
+loadSettings();
+render();
+</script>
+</body>
+</html>
