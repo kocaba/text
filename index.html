@@ -17,7 +17,6 @@ header{height:56px;background:#1976d2;color:#fff;display:flex;align-items:center
 .icon{cursor:pointer;padding:4px 6px;border-radius:4px}
 .del1{background:#ffe08a}.del2{background:#ff6b6b;color:#fff}
 
-/* Покращений адаптивний селектор з переносом рядків для мобільних */
 input,textarea,select{width:100%;padding:10px;margin-bottom:10px;border:1px solid #ccc;border-radius:4px;font-size:15px}
 select {
   white-space: normal !important;
@@ -38,7 +37,6 @@ button:hover{opacity:0.9}
 .note{display:flex;align-items:center;padding:8px;background:#fff;border:1px solid #ddd;margin:4px 0;border-radius:6px}
 .note.active{background:#d8ebff} .title{flex:1;cursor:pointer}
 
-/* Стилі модальних вікон */
 .settings-panel{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;box-shadow:0 0 15px #0004;z-index:12;width:92%;max-width:520px;max-height:88vh;overflow-y:auto;border-radius:8px}
 .settings-panel.show{display:block}
 .settings-panel h3{margin-top:0;margin-bottom:15px}
@@ -90,20 +88,20 @@ button:hover{opacity:0.9}
 <label>Оберіть модель:</label>
 <select id="aiModel" onchange="updateSelectColor(this)">
 <optgroup label="OpenAI (Сценарії & Хуки)" class="opt-gpt">
-<option value="gpt-4o-mini" class="opt-gpt">$0.30/1M | GPT-4o Mini — Базові чернетки та прості репліки</option>
-<option value="o3-mini" class="opt-gpt">$2.00/1M | o3-Mini — Логіка роздумів та зв'язок сцен</option>
-<option value="gpt-4o" class="opt-gpt">$5.00/1M | GPT-4o — Прописування характерів та деталей</option>
-<option value="gpt-5.4" class="opt-gpt">$7.00/1M | GPT-5.4 — Плавні живі діалоги й креатив</option>
-<option value="gpt-5.5" class="opt-gpt">$12.00/1M | GPT-5.5 — Кінематографічні фрази та метафори</option>
-<option value="o1" class="opt-gpt">$15.00/1M | o1 — Складні багаторівневі сюжети</option>
+<option value="gpt-4o-mini" class="opt-gpt">$0.30/1M | GPT-4o Mini — Базові чернетки</option>
+<option value="o3-mini" class="opt-gpt">$2.00/1M | o3-Mini — Логіка роздумів</option>
+<option value="gpt-4o" class="opt-gpt">$5.00/1M | GPT-4o — Деталізація характерів</option>
+<option value="gpt-5.4" class="opt-gpt">$7.00/1M | GPT-5.4 — Плавні живі діалоги</option>
+<option value="gpt-5.5" class="opt-gpt">$12.00/1M | GPT-5.5 — Преміальний флагман</option>
+<option value="o1" class="opt-gpt">$15.00/1M | o1 — Складні сюжети</option>
 </optgroup>
 <optgroup label="Google Gemini (Емоції & Драма)" class="opt-gemini">
-<option value="gemini-1.5-flash" class="opt-gemini">$0.08/1M | Gemini 1.5 Flash — Швидкі накидки та експрес-хуки</option>
-<option value="gemini-2.0-flash" class="opt-gemini">$0.15/1M | Gemini 2.0 Flash — Трендові тези та вірусні ідеї</option>
-<option value="gemini-2.0-flash-thinking-exp" class="opt-gemini">$2.00/1M | Gemini 2.0 Thinking — Покрокова сюжетна логіка</option>
-<option value="gemini-1.5-pro" class="opt-gemini">$2.50/1M | Gemini 1.5 Pro — Емоційні сцени та психологізм</option>
-<option value="gemini-2.0-pro" class="opt-gemini">$6.50/1M | Gemini 2.0 Pro — Глибока драма та складні діалоги</option>
-<option value="gemini-2.5-pro" class="opt-gemini">$9.00/1M | Gemini 2.5 Pro — Преміальний художній стиль</option>
+<option value="gemini-1.5-flash" class="opt-gemini">$0.08/1M | Gemini 1.5 Flash — Швидкі накидки</option>
+<option value="gemini-2.0-flash" class="opt-gemini">$0.15/1M | Gemini 2.0 Flash — Трендові тези</option>
+<option value="gemini-2.0-flash-thinking-exp" class="opt-gemini">$2.00/1M | Gemini 2.0 Thinking — Покрокова логіка</option>
+<option value="gemini-1.5-pro" class="opt-gemini">$2.50/1M | Gemini 1.5 Pro — Емоційні сцени</option>
+<option value="gemini-2.0-pro" class="opt-gemini">$6.50/1M | Gemini 2.0 Pro — Глибока драма</option>
+<option value="gemini-2.5-pro" class="opt-gemini">$9.00/1M | Gemini 2.5 Pro — Художній стиль</option>
 </optgroup>
 </select>
 <div style="display:flex;gap:10px;margin-top:15px;">
@@ -114,7 +112,7 @@ button:hover{opacity:0.9}
 
 <!-- МОДАЛЬНЕ ВІКНО ГЕНЕРАЦІЇ -->
 <div id="generationModal" class="settings-panel">
-<h3>Параметри generation сценарію</h3>
+<h3>Параметри генерації сценарію</h3>
 
 <label>Скільки нових сцен створити?</label>
 <input type="number" id="genCount" value="3" min="1" max="10">
@@ -129,8 +127,11 @@ button:hover{opacity:0.9}
 <option value="mystery">🤫 Інтригуючий / Секретний</option>
 </select>
 
-<!-- Блок динамічного опису стилю -->
 <div id="styleDesc" class="style-desc-box"></div>
+
+<!-- НОВЕ ПОЛЕ ДЛЯ ВИБОРУ МОВИ ЗБЕРІГАЄТЬСЯ АВТОМАТИЧНО -->
+<label>Якою мовою генерувати все (хуки та підказки):</label>
+<input type="text" id="generationLang" placeholder="Наприклад: Українська, Англійська..." oninput="saveGenerationLang()">
 
 <label>Про що писати / Додатковий контекст:</label>
 <div class="prompt-wrap">
@@ -166,11 +167,11 @@ button:hover{opacity:0.9}
 <script>
 const STYLES_INFO = {
 standard: "Чітко, по справі, без зайвої води. Сильний класичний хук, який одразу виділяє головну користь і викликає інтерес дізнатися суть.",
-satire: "Гостра сатира, іронія, легкий сарказм та уїдливі тези (наприклад: 'Алгоритм — не твоя мама, він не буде хвалити чернетку'). Ламає шаблони.",
-drama: "Глибокий психологічний тригер, створення драми та загадки. Максимальне емоційне залучення, що б'є точно по головних болях аудиторії.",
-expert: "Професійна подача, руйнування поширених міфів та демонстрація глибоких знань. Формує високу довіру до автора як до профі.",
-comedy: "Максимально розважальний формат, життєвий гумор, самоіронія чи неочікуваний абсурд. Найкраще підходить для завіруснення.",
-mystery: "Ефект 'тільки для своїх', клікбейт-загадки та недосказаність. Змушує людину додивитися відео до кінця, щоб дізнатися приховану правду."
+satire: "Гостра сатира, іронія, легкий сарказм та уїдливі тези. Ламає шаблони.",
+drama: "Глибокий психологічний тригер, створення драми та загадки. Максимальне емоційне залучення.",
+expert: "Професійна подача, руйнування поширених міфів та демонстрація знань.",
+comedy: "Максимально розважальний формат, життєвий гумор, самоіронія.",
+mystery: "Ефект 'тільки для своїх', клікбейт-загадки та недосказаність."
 };
 
 let db;
@@ -217,6 +218,9 @@ if(q("aiModel").selectedIndex === -1) {
 }
 
 q("customPrompt").value = localStorage.getItem("ai_custom_prompt") || "";
+// Завантаження збереженої мови (за замовчуванням — Українська)
+q("generationLang").value = localStorage.getItem("ai_lang") || "Українська";
+
 updateSelectColor(q("aiModel"));
 updateStyleDescription();
 }
@@ -231,6 +235,11 @@ toggleSettings(false);
 
 function saveCustomPrompt() {
 localStorage.setItem("ai_custom_prompt", q("customPrompt").value);
+}
+
+// Функція збереження мови
+function saveGenerationLang() {
+localStorage.setItem("ai_lang", q("generationLang").value.trim());
 }
 
 function clearPromptText() {
@@ -413,6 +422,7 @@ if (!isGPT && !geminiKey) return alert("Введіть API ключ Gemini в н
 
 const selectedStyle = q("generationStyle").value;
 const customPromptText = q("customPrompt").value.trim();
+const targetLang = localStorage.getItem("ai_lang") || "Українська";
 
 let styleInstruction = "";
 if (selectedStyle === "satire") {
@@ -431,12 +441,12 @@ if (selectedStyle === "satire") {
 
 let userCustomInstructions = "";
 if (customPromptText) {
-  userCustomInstructions = `\n⚠️ КРИТИЧНО ВАЖЛИВА ВИМОГА ВІД КОРИСТУВАЧА. Обов'язково адаптуй контент под цей опис:\n"${customPromptText}"\n`;
+  userCustomInstructions = `\n⚠️ КРИТИЧНО ВАЖЛИВА ВИМОГА ВІД КОРИСТУВАЧА. Обов'язково адаптуй контент під цей опис:\n"${customPromptText}"\n`;
 }
 
 let projectContext = notes.map((n, idx) => {
-let subItems = (n.descItems || []).map((d, i) => `    - Крок ${i+1}: ${d.text}`).join("\n");
-return `${idx+1}. Сцена: "${n.title}"\n${subItems || "    (Опис чи кроки відсутні)"}`;
+let subItems = (n.descItems || []).map((d, i) => `    - Теза ${i+1}: ${d.text}`).join("\n");
+return `${idx+1}. Сцена: "${n.title}"\n${subItems || "    (Тези відсутні)"}`;
 }).join("\n\n");
 
 const systemPrompt = `Ти — досвідчений ШІ-сценарист та контент-стратег. Твоє завдання — проаналізувати наявні сцени проекту та написати логічне продовження історії у вигляді нових сцен.
@@ -446,15 +456,19 @@ ${projectContext || "(проект порожній, придумай почат
 
 Згенеруй рівно ${count} НАСТУПНИХ нових окремих сцен. Не редагуй і не змінюй наявні!
 ${userCustomInstructions}
-⚠️ СУВОРІ ВИМОГИ ДО РОЗДІЛЕННЯ СТИЛІВ ЗАГОЛОВКА ТА ОПИСУ:
 
-1. НАЗВА СЦЕНИ (title) — це ХУК ДЛЯ ГЛЯДАЧА. Вона має бути написана строго у стилі: ${styleInstruction}
+⚠️ СУВОРІ КРИТИЧНІ ВИМОГИ ДО МОВИ ТА СТРУКТУРИ:
 
-2. ВНУТРІШНІ ПУНКТИ/ОПИСИ (descItems) — це ШПАРГАЛКА ВИКЛЮЧНО ДЛЯ АВТОРА (він не буде читати це в кадрі). 
-   - Пиши це МАКСИМАЛЬНО ПРОСТОЮ МОВОЮ, як для дитини!
-   - Жодних завуалауваних фразочок чи абстрактної філософії всередині описів. Автор повинен чітко прочитати і моментально зрозуміти задачу.
-   - Спілкуйся з автором як близький друг: використовуй зрозумілий живий сленг, яскраві, прості життєві метафори, але тримай суть кристально чистою та розжованою до деталей.
-   - Згенеруй від 2 до 4 таких зрозумілих внутрішніх підпунктів для кожної сцени.
+1. МОВА ГЕНЕРАЦІЇ: Абсолютно вся відповідь (і назви хуків, і внутрішні пункти-підказки) повинна бути написана строго мовою: ${targetLang}.
+
+2. НАЗВА СЦЕНИ (title) — це ХУК ДЛЯ ГЛЯДАЧА. Вона має бути написана строго у стилі: ${styleInstruction}
+
+3. ВНУТРІШНІ ПУНКТИ/ОПИСИ (descItems) — це ШПАРГАЛКА ПРО ЩО САМЕ ГОВОРИТИ АВТОРУ (тези розмови, змістовні акценти).
+   - ❌ КАТЕГОРИЧНО ЗАБОРОНЕНО писати фізичні дії, візуальні команди чи вказівки для камери (наприклад: "покажи телефон", "переверни камеру", "посміхнись у кадр", "вкажи пальцем").
+   - ✅ ТРЕБА писати виключно психологічні та смислові орієнтири для розмови — яку думку озвучити, про що розповісти глядачу, на що поскаржитися чи який факт розкрити.
+   - Еталонний приклад правильної підказки: "Поясни глядачу, чому зараз так мало переглядів, розкрий свій внутрішній сум через це і нагадай, що саме через цей розпач і депресивний ступор більшість людей ламаються і кидають усе на півдорозі".
+   - Спілкуйся з автором як близький друг: використовуй зрозумілий живий сленг, яскраві, прості життєві метафори, але тримай суть розмови кристально чистою та розжованою до деталей, щоб автор знав, яку емоцію та думку висловити.
+   - Згенеруй від 2 до 4 таких точних підказок для розмови для кожної сцени.
 
 Поверни відповідь виключно у форматі JSON-об'єкта, що містить масив сцен під ключем "scenes". Жодного тексту крім JSON.
 
@@ -464,14 +478,14 @@ ${userCustomInstructions}
     {
       "title": "[Хук відповідно до обраного стилю]",
       "descItems": [
-        "[Конкретний розжований крок простішою мовою для автора]",
-        "[Наступний чіткий крок-пояснення]"
+        "[Смислова підказка про що говорити мовою ${targetLang}]",
+        "[Наступна смислова теза для розмови]"
       ]
     }
   ]
 }`;
 
-const userPrompt = `Проаналізуй контекст, врахуй побажання користувача і згенеруй рівно ${count} наступних сцен. Заголовки — хуки у стилі '${selectedStyle}', а описи всередині — проста шпаргалка для мене. Відповідь — суворо JSON об'єкт {"scenes": [...]}`;
+const userPrompt = `Проаналізуй контекст, врахуй побажання користувача і згенеруй рівно ${count} наступних сцен. Мова: ${targetLang}. Заголовки — хуки у стилі '${selectedStyle}', а описи всередині — проста підказка про що говорити без фізичних дій. Відповідь — суворо JSON об'єкт {"scenes": [...]}`;
 
 const btnGen = q("btnStartGen");
 const originalText = btnGen.textContent;
