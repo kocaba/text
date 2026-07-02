@@ -2,11 +2,8 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<link rel="icon" type="image/png" href="icon.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icon.png">
-<link rel="apple-touch-icon" href="icon.png">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Сценарист</title>
+<title>Нотатки з ШІ (Сценарист 2026)</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Arial;background:#eef2f5}
 header{height:56px;background:#1976d2;color:#fff;display:flex;align-items:center;padding:0 15px;gap:15px}
@@ -129,10 +126,19 @@ button:hover{opacity:0.9}
 <option value="comedy">🤪 Гумористичний / Життєвий</option>
 <option value="mystery">🤫 Інтригуючий / Секретний</option>
 </select>
-
 <div id="styleDesc" class="style-desc-box"></div>
 
-<!-- НОВЕ ПОЛЕ ДЛЯ ВИБОРУ МОВИ ЗБЕРІГАЄТЬСЯ АВТОМАТИЧНО -->
+<!-- НОВИЙ СЕЛЕКТОР ТИПУ/СТРУКТУРИ СЦЕНАРІЮ -->
+<label>Оберіть тип / формат сценарію:</label>
+<select id="scenarioType" onchange="updateTypeDescription()">
+<option value="classic">📊 Маркетинговий (Хук, Проблема, Посилення, Вирішення, CTA)</option>
+<option value="storytelling">📖 Сторітелінг (Історія з життя / Особистий кейс)</option>
+<option value="instruction">🛠 Інструкція (Покроковий туторіал / Гайд)</option>
+<option value="myths">⚡ Руйнування міфів (Помилка ніші проти Фактів)</option>
+<option value="review">⚖ Огляд / Порівняння (Плюси, мінуси та фінальний вердикт)</option>
+</select>
+<div id="typeDesc" class="style-desc-box"></div>
+
 <label>Якою мовою генерувати все (хуки та підказки):</label>
 <input type="text" id="generationLang" placeholder="Наприклад: Українська, Англійська..." oninput="saveGenerationLang()">
 
@@ -175,6 +181,14 @@ drama: "Глибокий психологічний тригер, створен
 expert: "Професійна подача, руйнування поширених міфів та демонстрація знань.",
 comedy: "Максимально розважальний формат, життєвий гумор, самоіронія.",
 mystery: "Ефект 'тільки для своїх', клікбейт-загадки та недосказаність."
+};
+
+const TYPES_INFO = {
+classic: "Класична воронка утримання уваги: чітке визначення болю глядача, емоційне нагнітання проблеми, демонстрація розв'язання та фінальний заклик до дії.",
+storytelling: "Емоційний виклад через призму персонального досвіду чи кейсу. Внутрішній сюжет тримає увагу: від кризи до отриманого уроку.",
+instruction: "Прямий корисний контент. Короткі, зрозумілі кроки 'як зробити щось', що несуть моментальну цінність глядачеві без води.",
+myths: "Ефектне викриття гучної помилки в ніші. Спочатку називається міф, у який безглуздо вірять люди, а потім дається залізна правда.",
+review: "Об'єктивне зіставлення двох інструментів, підходів чи товарів. Розбір головних плюсів/мінусів та логічний фінальний вердикт."
 };
 
 let db;
@@ -221,11 +235,18 @@ if(q("aiModel").selectedIndex === -1) {
 }
 
 q("customPrompt").value = localStorage.getItem("ai_custom_prompt") || "";
-// Завантаження збереженої мови (за замовчуванням — Українська)
 q("generationLang").value = localStorage.getItem("ai_lang") || "Українська";
+
+// Завантаження збереженого типу сценарію
+let savedType = localStorage.getItem("ai_scenario_type") || "classic";
+q("scenarioType").value = savedType;
+if(q("scenarioType").selectedIndex === -1) {
+  q("scenarioType").value = "classic";
+}
 
 updateSelectColor(q("aiModel"));
 updateStyleDescription();
+updateTypeDescription();
 }
 
 function saveSettings() {
@@ -240,9 +261,16 @@ function saveCustomPrompt() {
 localStorage.setItem("ai_custom_prompt", q("customPrompt").value);
 }
 
-// Функція збереження мови
 function saveGenerationLang() {
 localStorage.setItem("ai_lang", q("generationLang").value.trim());
+}
+
+// Автоматичне збереження та оновлення опису типу сценарію
+function updateTypeDescription() {
+const el = q("scenarioType");
+if(!el) return;
+localStorage.setItem("ai_scenario_type", el.value);
+q("typeDesc").textContent = TYPES_INFO[el.value] || "";
 }
 
 function clearPromptText() {
@@ -424,6 +452,7 @@ if (isGPT && !gptKey) return alert("Введіть API ключ OpenAI в нал
 if (!isGPT && !geminiKey) return alert("Введіть API ключ Gemini в налаштуваннях.");
 
 const selectedStyle = q("generationStyle").value;
+const selectedType = q("scenarioType").value;
 const customPromptText = q("customPrompt").value.trim();
 const targetLang = localStorage.getItem("ai_lang") || "Українська";
 
@@ -440,6 +469,20 @@ if (selectedStyle === "satire") {
   styleInstruction = "Інтригуючий тон, ефект секретності або 'тільки для своїх'. Створюй недосказаність, яка змушує додивитися до кінця.";
 } else {
   styleInstruction = "Класичний, прямолінійний, але сильний блогерський хук. Чітко, по справі, без зайвих метафор, але так, щоб викликати інтерес дізнатися суть.";
+}
+
+// Формування чіткої інструкції щодо структури сценарію
+let typeInstruction = "";
+if (selectedType === "storytelling") {
+  typeInstruction = "ФОРМАТ СТОРІТЕЛІНГУ. Внутрішні тези повинні вести лінію живої розповіді: 1. Початок історії (як усе починалося чи який був контекст), 2. Переломний момент (криза, проблема, емоційне дно), 3. Головний інсайт або урок, який змінив усе.";
+} else if (selectedType === "instruction") {
+  typeInstruction = "ФОРМАТ ПОКРОКОВОЇ ІНСТРУКЦІЇ/ГАЙДУ. Внутрішні тези повинні чітко розбивати тему на корисні практичні етапи розмови: Теза 1 (Крок 1), Теза 2 (Крок 2), Теза 3 (Крок 3), що ведуть автора до обіцяного фінального результату.";
+} else if (selectedType === "myths") {
+  typeInstruction = "ФОРМАТ РУЙНУВАННЯ МІФІВ. Внутрішні тези мають бути побудовані за схемою: 1. Озвучення популярної помилки в ніші, у яку всі вірять, 2. Пояснення, чому це брехня і де саме через це втрачаються ресурси/гроші, 3. Як діяти правильно на основі залізних реальних фактів.";
+} else if (selectedType === "review") {
+  typeInstruction = "ФОРМАТ ОГЛЯДУ / ПОРІВНЯННЯ. Внутрішні тези мають містити аналіз: 1. Зіставлення варіантів, інструментів чи критеріїв, 2. Чесні плюси та мінуси кожного підходу (об'єктивно), 3. Фінальний вердикт або чітка рекомендація для глядача.";
+} else {
+  typeInstruction = "МАРКЕТИНГОВИЙ СТРУКТУРНИЙ ФОРМАТ. Внутрішні тези мають йти строго по ланцюжку розмови: 1. Чітке озвучення болючої проблеми глядача, 2. Посилення та заглиблення цієї проблеми (чому це критично і боляче), 3. Презентація вирішення, 4. Заклик до дії (CTA / що зробити глядачу).";
 }
 
 let userCustomInstructions = "";
@@ -467,6 +510,9 @@ ${userCustomInstructions}
 2. НАЗВА СЦЕНИ (title) — це ХУК ДЛЯ ГЛЯДАЧА. Вона має бути написана строго у стилі: ${styleInstruction}
 
 3. ВНУТРІШНІ ПУНКТИ/ОПИСИ (descItems) — це ШПАРГАЛКА ПРО ЩО САМЕ ГОВОРИТИ АВТОРУ (тези розмови, змістовні акценти).
+   Внутрішні пункти мають бути побудовані строго відповідно до обраного формату:
+   👉 ${typeInstruction}
+   
    - ❌ КАТЕГОРИЧНО ЗАБОРОНЕНО писати фізичні дії, візуальні команди чи вказівки для камери (наприклад: "покажи телефон", "переверни камеру", "посміхнись у кадр", "вкажи пальцем").
    - ✅ ТРЕБА писати виключно психологічні та смислові орієнтири для розмови — яку думку озвучити, про що розповісти глядачу, на що поскаржитися чи який факт розкрити.
    - Еталонний приклад правильної підказки: "Поясни глядачу, чому зараз так мало переглядів, розкрий свій внутрішній сум через це і нагадай, що саме через цей розпач і депресивний ступор більшість людей ламаються і кидають усе на півдорозі".
@@ -481,18 +527,18 @@ ${userCustomInstructions}
     {
       "title": "[Хук відповідно до обраного стилю]",
       "descItems": [
-        "[Смислова підказка про що говорити мовою ${targetLang}]",
+        "[Смислова підказка відповідно до обраного формату мовою ${targetLang}]",
         "[Наступна смислова теза для розмови]"
       ]
     }
   ]
 }`;
 
-const userPrompt = `Проаналізуй контекст, врахуй побажання користувача і згенеруй рівно ${count} наступних сцен. Мова: ${targetLang}. Заголовки — хуки у стилі '${selectedStyle}', а описи всередині — проста підказка про що говорити без фізичних дій. Відповідь — суворо JSON об'єкт {"scenes": [...]}`;
+const userPrompt = `Проаналізуй контекст, врахуй побажання користувача і згенеруй рівно ${count} наступних сцен. Мова: ${targetLang}. Формат: ${selectedType}. Заголовки — хуки у стилі '${selectedStyle}', а описи всередині — проста підказка про що говорити без фізичних дій. Відповідь — суворо JSON об'єкт {"scenes": [...]}`;
 
 const btnGen = q("btnStartGen");
 const originalText = btnGen.textContent;
-btnGen.textContent = "⏳ Прораховуємо стилі...";
+btnGen.textContent = "⏳ Прораховуємо формати...";
 btnGen.disabled = true;
 
 try {
