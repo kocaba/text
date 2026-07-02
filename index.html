@@ -35,7 +35,7 @@ button{padding:10px;background:#1976d2;color:#fff;border:none;border-radius:4px;
 button:hover{opacity:0.9}
 .btn-ai{background:#2e7d32;margin-left:auto}
 .note{display:flex;align-items:center;padding:8px;background:#fff;border:1px solid #ddd;margin:4px 0;border-radius:6px}
-.note.active{background:#d8ebff} .title{flex:1;cursor:pointer}
+.note.active{background:#d8ebff !important} .title{flex:1;cursor:pointer}
 
 .settings-panel{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;box-shadow:0 0 15px #0004;z-index:12;width:92%;max-width:520px;max-height:88vh;overflow-y:auto;border-radius:8px}
 .settings-panel.show{display:block}
@@ -49,9 +49,7 @@ button:hover{opacity:0.9}
 .clear-txt-btn{position:absolute;right:10px;top:8px;font-size:22px;color:#aaa;cursor:pointer;user-select:none;line-height:1}
 .clear-txt-btn:hover{color:#666}
 
-.style-desc-box{background:#f5f7fa;padding:12px;border-left:4px solid #1976d2;margin-bottom:15px;font-size:14px;color:#444;line-height:1.4;border-radius:0 4px 4px 0}
-
-.editor-container { background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 15px; margin-top: 10px; }
+.editor-container { background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 15px; margin-top: 10px; margin-bottom: 15px; }
 .desc-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #e0e0e0; }
 .desc-num { font-size: 15px; font-weight: bold; color: #1976d2; min-width: 22px; padding-top: 10px; text-align: right; }
 .desc-text-wrap { flex: 1; display: flex; flex-direction: column; }
@@ -114,11 +112,31 @@ button:hover{opacity:0.9}
 <div id="generationModal" class="settings-panel">
 <h3>Параметри генерації сценарію</h3>
 
+<!-- Блок вкладок для вибору режиму генерації -->
+<div style="display:flex;gap:5px;margin-bottom:12px;border-bottom:2px solid #ddd;">
+<button type="button" id="tabAutoBtn" onclick="setGenTab('auto')" style="background:#1976d2;flex:1;border-radius:4px 4px 0 0;margin-bottom:0;padding:8px 5px;font-size:14px;">🤖 Автоматично</button>
+<button type="button" id="tabHooksBtn" onclick="setGenTab('hooks')" style="background:#757575;flex:1;border-radius:4px 4px 0 0;margin-bottom:0;padding:8px 5px;font-size:14px;">🪝 За хуками</button>
+</div>
+
+<!-- Вкладка 1: Звичайний вибір кількості -->
+<div id="tabContentAuto">
 <label>Скільки нових сцен створити?</label>
 <input type="number" id="genCount" value="3" min="1" max="10">
+</div>
 
-<label>Оберіть стиль хуків:</label>
-<select id="generationStyle" onchange="updateStyleDescription()">
+<!-- Вкладка 2: Робота за попередньо створеними хуками -->
+<div id="tabContentHooks" style="display:none;">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+<label style="margin-bottom:0;font-size:14px;">Збережені хуки для сценаріїв:</label>
+<button type="button" onclick="openHooksSubModal()" style="background:#6a1b9a;padding:5px 10px;font-size:13px;margin-bottom:0;display:flex;align-items:center;gap:4px;">💎 Створити хуки</button>
+</div>
+<div id="generatedHooksList" style="max-height:280px;overflow-y:auto;border:1px solid #ccc;padding:8px;border-radius:4px;background:#fafafa;margin-bottom:12px;display:flex;flex-direction:column;gap:5px;">
+<div style='color:#aaa;font-style:italic;font-size:14px;padding:4px 0;'>Хуки ще не згенеровані. Натисніть "💎 Створити хуки".</div>
+</div>
+</div>
+
+<label>Оберіть стиль хуків (для Авто-режиму):</label>
+<select id="generationStyle">
 <option value="standard">🎯 Класичний хук</option>
 <option value="satire">🔥 Сатиричний хук</option>
 <option value="drama">🧠 Психологічний / Драма</option>
@@ -126,17 +144,22 @@ button:hover{opacity:0.9}
 <option value="comedy">🤪 Гумористичний / Життєвий</option>
 <option value="mystery">🤫 Інтригуючий / Секретний</option>
 </select>
-<div id="styleDesc" class="style-desc-box"></div>
 
 <label>Оберіть тип / формат сценарію:</label>
-<select id="scenarioType" onchange="updateTypeDescription()">
+<select id="scenarioType">
 <option value="classic">📊 Маркетинговий (Хук, Біль, Посилення, Гнучкий CTA, Вирішення)</option>
 <option value="storytelling">📖 Сторітелінг (Історія з життя / Особистий кейс)</option>
 <option value="instruction">🛠 Інструкція (Покроковий туторіал / Гайд)</option>
 <option value="myths">⚡ Руйнування міфів (Помилка ніші проти Фактів)</option>
 <option value="review">⚖ Огляд / Порівняння (Плюси, мінуси та фінальний вердикт)</option>
 </select>
-<div id="typeDesc" class="style-desc-box"></div>
+
+<label>Які існуючі сцени врахувати як контекст?</label>
+<div style="display:flex;gap:8px;margin-bottom:6px;">
+<button type="button" onclick="toggleAllCheckboxes(true)" style="padding:4px 8px;font-size:12px;background:#757575;flex:1;">Позначити всі</button>
+<button type="button" onclick="toggleAllCheckboxes(false)" style="padding:4px 8px;font-size:12px;background:#757575;flex:1;">Зняти виділення</button>
+</div>
+<div id="scenesChecklist" style="max-height:120px;overflow-y:auto;border:1px solid #ccc;padding:8px;border-radius:4px;background:#fafafa;margin-bottom:12px;display:flex;flex-direction:column;gap:5px;"></div>
 
 <label>Якою мовою генерувати все (хуки та підказки):</label>
 <input type="text" id="generationLang" placeholder="Наприклад: Українська, Англійська..." oninput="saveGenerationLang()">
@@ -148,8 +171,33 @@ button:hover{opacity:0.9}
 </div>
 
 <div style="display:flex;gap:10px;margin-top:15px;">
-<button id="btnStartGen" onclick="runAIGeneration()" style="flex:2;background:#2e7d32;">✨ Згенерувати</button>
+<button id="btnStartGen" onclick="runAIGeneration()" style="flex:2;background:#2e7d32;">✨ Згенерувати сценарії</button>
 <button onclick="toggleGenerationModal(false)" style="flex:1;background:#9e9e9e;">Скасувати</button>
+</div>
+</div>
+
+<!-- ДІАМАНТОВЕ СУБ-ВІКНО ГЕНЕРАЦІЇ ХУКІВ -->
+<div id="hooksSubModal" class="settings-panel" style="z-index:15;">
+<h3>💎 Generator бази хуків</h3>
+<label>Скільки хуків створити для вибору?</label>
+<input type="number" id="hookGenCount" value="5" min="1" max="20" oninput="saveHookFields()">
+
+<label>Оберіть стиль заголовків:</label>
+<select id="hookGenStyle" onchange="saveHookFields()">
+<option value="standard">🎯 Класичний хук</option>
+<option value="satire">🔥 Сатиричний хук</option>
+<option value="drama">🧠 Психологічний / Драма</option>
+<option value="expert">💎 Експертний / Авторитетний</option>
+<option value="comedy">🤪 Гумористичний / Життєвий</option>
+<option value="mystery">🤫 Інтригуючий / Секретний</option>
+</select>
+
+<label>Тема, болі або нюанси для хуків:</label>
+<textarea id="hookGenPrompt" placeholder="Наприклад: Тема: Вихід на фриланс. ЦА: Мами в декреті, які хочуть заробляти самі та не залежати від чоловіка..." style="min-height:80px;" oninput="saveHookFields()"></textarea>
+
+<div style="display:flex;gap:10px;margin-top:15px;">
+<button id="btnRunHookGen" onclick="runHookGenerationOnly()" style="flex:2;background:#6a1b9a;">✨ Згенерувати хуки</button>
+<button type="button" onclick="toggleHooksSubModal(false)" style="flex:1;background:#9e9e9e;">Скасувати</button>
 </div>
 </div>
 
@@ -160,9 +208,10 @@ button:hover{opacity:0.9}
 <button onclick="newNote()">Додати</button>
 <button class="btn-ai" onclick="toggleGenerationModal(true)">✨</button>
 </div>
-<div id="notes"></div>
 
+<!-- Блок деталей тепер відображається НАД списком сценаріїв -->
 <div class="editor-container" id="editorContainer" style="display:none;">
+<div id="editorTitle" style="font-size:16px;font-weight:bold;color:#1976d2;margin-bottom:12px;line-height:1.4;"></div>
 <div style="font-size:14px;font-weight:bold;color:#444;margin-bottom:5px;">Опис та кроки сценарію:</div>
 <div id="descList"></div>
 <div class="desc-placeholder-row" onclick="inlineAddDescItem()">
@@ -170,26 +219,11 @@ button:hover{opacity:0.9}
 <div class="desc-placeholder-text">+ Додати новий пункт сценарію...</div>
 </div>
 </div>
+
+<div id="notes"></div>
 </div>
 
 <script>
-const STYLES_INFO = {
-standard: "Чітко, по справі, без зайвої води. Сильний класичний хук, який одразу виділяє головну користь і викликає інтерес дізнатися суть.",
-satire: "Гостра сатира, іронія, легкий сарказм та уїдливі тези. Ламає шаблони.",
-drama: "Глибокий психологічний тригер, створення драми та загадки. Максимальне емоційне залучення.",
-expert: "Професійна подача, руйнування поширених міфів та демонстрація знань.",
-comedy: "Максимально розважальний формат, життєвий гумор, самоіронія.",
-mystery: "Ефект 'тільки для своїх', клікбейт-загадки та недосказаність."
-};
-
-const TYPES_INFO = {
-classic: "Воронка утримання: біль глядача, посилення проблеми, гнучкий CTA (може бути перед вирішенням або в кінці), та саме вирішення.",
-storytelling: "Емоційний виклад через призму персонального досвіду чи кейсу. Внутрішній сюжет тримає увагу: від кризи до отриманого уроку.",
-instruction: "Прямий корисний контент. Короткі, зрозумілі кроки 'як зробити щось', що несуть моментальну цінність глядачеві без води.",
-myths: "Ефектне викриття гучної помилки в ніші. Спочатку називається міф, у який безглуздо вірять люди, а потім дається залізна правда.",
-review: "Об'єктивне зіставлення двох інструментів, підходів чи товарів. Розбір головних плюсів/мінусів та логічний фінальний вердикт."
-};
-
 let db;
 try {
   db = JSON.parse(localStorage.getItem("notesdb"));
@@ -201,17 +235,40 @@ if (!db || !db.folders || !Array.isArray(db.folders) || db.folders.length === 0)
 if (typeof db.cf !== 'number') db.cf = 0;
 if (typeof db.cn !== 'number') db.cn = -1;
 
+let currentGenTab = "auto";
+let temporaryGeneratedHooks = [];
+try {
+  temporaryGeneratedHooks = JSON.parse(localStorage.getItem("ai_temp_hooks")) || [];
+} catch(e) { temporaryGeneratedHooks = []; }
+
 function q(i){return document.getElementById(i)}
 function save(){localStorage.setItem("notesdb",JSON.stringify(db))}
 
-const drawer=q("drawer"),ov=q("ov"),settingsModal=q("settingsModal"),generationModal=q("generationModal");
+const drawer=q("drawer"),ov=q("ov"),settingsModal=q("settingsModal"),generationModal=q("generationModal"),hooksSubModal=q("hooksSubModal");
 
 q("menu").onclick=()=>{drawer.classList.add("open");ov.classList.add("show")}
 ov.onclick=()=>{
 drawer.classList.remove("open");
 settingsModal.classList.remove("show");
 generationModal.classList.remove("show");
+hooksSubModal.classList.remove("show");
 ov.classList.remove("show");
+}
+
+function setGenTab(tab) {
+currentGenTab = tab;
+if (tab === "auto") {
+  q("tabAutoBtn").style.background = "#1976d2";
+  q("tabHooksBtn").style.background = "#757575";
+  q("tabContentAuto").style.display = "block";
+  q("tabContentHooks").style.display = "none";
+} else {
+  q("tabAutoBtn").style.background = "#757575";
+  q("tabHooksBtn").style.background = "#1976d2";
+  q("tabContentAuto").style.display = "none";
+  q("tabContentHooks").style.display = "block";
+  renderGeneratedHooksList();
+}
 }
 
 function updateSelectColor(selectEl) {
@@ -242,9 +299,17 @@ if(q("scenarioType").selectedIndex === -1) {
   q("scenarioType").value = "classic";
 }
 
+let savedStyle = localStorage.getItem("ai_scenario_style") || "standard";
+q("generationStyle").value = savedStyle;
+if(q("generationStyle").selectedIndex === -1) {
+  q("generationStyle").value = "standard";
+}
+
+q("hookGenCount").value = localStorage.getItem("ai_hook_count") || "5";
+q("hookGenStyle").value = localStorage.getItem("ai_hook_style") || "standard";
+q("hookGenPrompt").value = localStorage.getItem("ai_hook_prompt") || "";
+
 updateSelectColor(q("aiModel"));
-updateStyleDescription();
-updateTypeDescription();
 }
 
 function saveSettings() {
@@ -263,11 +328,10 @@ function saveGenerationLang() {
 localStorage.setItem("ai_lang", q("generationLang").value.trim());
 }
 
-function updateTypeDescription() {
-const el = q("scenarioType");
-if(!el) return;
-localStorage.setItem("ai_scenario_type", el.value);
-q("typeDesc").textContent = TYPES_INFO[el.value] || "";
+function saveHookFields() {
+localStorage.setItem("ai_hook_count", q("hookGenCount").value);
+localStorage.setItem("ai_hook_style", q("hookGenStyle").value);
+localStorage.setItem("ai_hook_prompt", q("hookGenPrompt").value);
 }
 
 function clearPromptText() {
@@ -276,21 +340,124 @@ localStorage.setItem("ai_custom_prompt", "");
 q("customPrompt").focus();
 }
 
-function updateStyleDescription() {
-const el = q("generationStyle");
-if(!el) return;
-const selected = el.value;
-q("styleDesc").textContent = STYLES_INFO[selected] || "";
-}
-
 function toggleSettings(show) {
 if(show) { loadSettings(); settingsModal.classList.add("show"); ov.classList.add("show"); drawer.classList.remove("open"); }
 else { settingsModal.classList.remove("show"); ov.classList.remove("show"); }
 }
 
 function toggleGenerationModal(show) {
-if(show) { loadSettings(); generationModal.classList.add("show"); ov.classList.add("show"); }
-else { generationModal.classList.remove("show"); ov.classList.remove("show"); }
+if(show) { 
+  loadSettings(); 
+  populateScenesChecklist();
+  generationModal.classList.add("show"); 
+  ov.classList.add("show"); 
+}
+else { 
+  generationModal.classList.remove("show"); 
+  ov.classList.remove("show"); 
+}
+}
+
+function toggleHooksSubModal(show) {
+if(show) {
+  hooksSubModal.classList.add("show");
+} else {
+  hooksSubModal.classList.remove("show");
+}
+}
+
+function openHooksSubModal() {
+toggleHooksSubModal(true);
+}
+
+function renderGeneratedHooksList() {
+const box = q("generatedHooksList");
+box.innerHTML = "";
+if (temporaryGeneratedHooks.length === 0) {
+  box.innerHTML = "<div style='color:#aaa;font-style:italic;font-size:14px;padding:4px 0;'>Хуки ще не згенеровані. Натисніть '💎 Створити хуки'.</div>";
+  return;
+}
+temporaryGeneratedHooks.forEach((hookText, idx) => {
+  let div = document.createElement("div");
+  div.style.display = "flex";
+  div.style.alignItems = "center";
+  div.style.gap = "8px";
+  div.style.justifyContent = "space-between";
+  div.style.background = "#fff";
+  div.style.padding = "4px 8px";
+  div.style.borderRadius = "4px";
+  div.style.border = "1px solid #eee";
+  
+  let left = document.createElement("div");
+  left.style.display = "flex";
+  left.style.alignItems = "flex-start";
+  left.style.gap = "6px";
+  left.style.flex = "1";
+  left.style.fontSize = "14px";
+  left.innerHTML = `<span style="color:#757575;font-weight:bold;user-select:none;">${idx+1}.</span> <span id="hookTextSpan_${idx}" style="line-height:1.3;word-break:break-word;">${hookText}</span>`;
+  
+  let actions = document.createElement("div");
+  actions.style.display = "flex";
+  actions.style.gap = "2px";
+
+  let editBtn = document.createElement("span");
+  editBtn.className = "icon";
+  editBtn.innerHTML = "✏";
+  editBtn.style.padding = "2px 4px";
+  editBtn.style.fontSize = "14px";
+  editBtn.onclick = (e) => {
+    e.stopPropagation();
+    let newTxt = prompt("Редагувати заголовок хука:", temporaryGeneratedHooks[idx]);
+    if (newTxt && newTxt.trim() !== "") {
+      temporaryGeneratedHooks[idx] = newTxt.trim();
+      localStorage.setItem("ai_temp_hooks", JSON.stringify(temporaryGeneratedHooks));
+      q(`hookTextSpan_${idx}`).textContent = newTxt.trim();
+    }
+  };
+  
+  let delBtn = document.createElement("span");
+  delBtn.className = "icon";
+  delBtn.innerHTML = "🗑";
+  delBtn.style.padding = "2px 4px";
+  delBtn.style.fontSize = "14px";
+  delBtn.onclick = (e) => {
+    e.stopPropagation();
+    temporaryGeneratedHooks.splice(idx, 1);
+    localStorage.setItem("ai_temp_hooks", JSON.stringify(temporaryGeneratedHooks));
+    renderGeneratedHooksList();
+  };
+
+  actions.append(editBtn, delBtn);
+  div.appendChild(left);
+  div.appendChild(actions);
+  box.appendChild(div);
+});
+}
+
+function populateScenesChecklist() {
+const box = q("scenesChecklist");
+box.innerHTML = "";
+const notes = db.folders[db.cf].notes || [];
+if (notes.length === 0) {
+  box.innerHTML = "<div style='color:#aaa;font-style:italic;font-size:14px;padding:4px 0;'>У цій папці ще немає сцен. ШІ почне з нуля.</div>";
+  return;
+}
+notes.forEach((n, idx) => {
+  let lbl = document.createElement("label");
+  lbl.style.display = "flex";
+  lbl.style.alignItems = "flex-start";
+  lbl.style.gap = "8px";
+  lbl.style.fontWeight = "normal";
+  lbl.style.cursor = "pointer";
+  lbl.style.fontSize = "14px";
+  lbl.style.color = "#333";
+  lbl.innerHTML = `<input type="checkbox" class="scene-ctx-cb" data-idx="${idx}" checked style="width:auto;margin:3px 0 0 0;padding:0;height:auto;"> <span style="line-height:1.3;">${idx+1}. ${n.title}</span>`;
+  box.appendChild(lbl);
+});
+}
+
+function toggleAllCheckboxes(checked) {
+document.querySelectorAll(".scene-ctx-cb").forEach(cb => cb.checked = checked);
 }
 
 function render(){
@@ -374,6 +541,9 @@ if(db.cn < 0) return;
 let note = db.folders[db.cf].notes[db.cn];
 if(!note.descItems) note.descItems = [];
 
+// Додаємо назву сценарію вгору вікна деталей
+q("editorTitle").textContent = note.title;
+
 note.descItems.forEach((item, index)=>{
 let row = document.createElement("div");
 row.className = "desc-item";
@@ -431,18 +601,124 @@ renderDescList();
 }
 }
 
+async function runHookGenerationOnly() {
+const model = localStorage.getItem("ai_model") || "gpt-4o-mini";
+const gptKey = localStorage.getItem("ai_gpt_key");
+const geminiKey = localStorage.getItem("ai_gemini_key");
+const isGPT = !model.startsWith("gemini");
+
+if (isGPT && !gptKey) return alert("Введіть API ключ OpenAI в налаштуваннях.");
+if (!isGPT && !geminiKey) return alert("Введіть API ключ Gemini в налаштуваннях.");
+
+const hCount = parseInt(q("hookGenCount").value) || 5;
+const hStyle = q("hookGenStyle").value;
+const hPrompt = q("hookGenPrompt").value.trim();
+const targetLang = localStorage.getItem("ai_lang") || "Українська";
+
+let styleInstruction = "";
+if (hStyle === "satire") styleInstruction = "сатира.";
+else if (hStyle === "drama") styleInstruction = "Глибокий психологічний тригер, створення таємниці та сильного емоційного залучення, що б'є по болях людей.";
+else if (hStyle === "expert") styleInstruction = "Професійна, авторитетна подача, руйнування міфів, розкриття секретів професії. Тон експерта.";
+else if (hStyle === "comedy") styleInstruction = "Гумористичний, життєвий стиль, самоіронія, легкі жарти чи кумедний абсурд.";
+else if (hStyle === "mystery") styleInstruction = "Інтригуючий тон, ефект секретності або 'тільки для своїх'. Створюй недосказаність.";
+else styleInstruction = "Класичний, прямолінійний, але сильний блогерський хук. Чітко, по справі, викликає інтерес.";
+
+const systemPrompt = `Ти — експерт з контент-маркетингу, психології споживачів та висококонверсійного копірайтингу. Твоє завдання — створити потужні, чіпляючі хуки (перші рядки для постів/відео), спираючись на глибоке розуміння цільової аудиторії (ЦА), а не просто на загальну тему.
+
+Виконуй завдання строго у два етапи (проведи аналіз внутрішньо перед генерацією):
+
+### ЕТАП 1: Психологічний портрет та тригери ЦА
+На основі теми та контексту користувача визнач:
+1. Головні болі (Що болить прямо зараз? Щоденні труднощі, з якими стикаються).
+2. Страхи (Чого бояться в майбутньому, якщо проблема не вирішиться? Найгірші сценарії у голові).
+3. Бажання та мрії (Ідеальна картинка життя, про що мовчки мріють).
+4. Конкретні цілі (Вимірювані результати, до яких прагнуть).
+
+### ЕТАП 2: Генерація хуків на основі інсайтів
+Використовуючи дані з Етапу 1, створи рівно ${hCount} різнопланових хуків. Стиль заголовків має відповідати критерію: ${styleInstruction}.
+Кожен хук повинен бити в конкретний виявлений тригер (біль, страх або мрію) і викликати сильний емоційний відгук. Використовуй розмовну, живу мову без офіціозу.
+
+
+⚠️ КРИТИЧНІ ВИМОГИ ДО МОВИ ТА СТРУКТУРИ:
+1. Мова відповіді: СТРОГО ${targetLang}.
+2. Створюй інтригуючі хуки, які викликають цікавість і бажання дивитися далі. Уникай банальних жартів і завершених думок.
+3. Поверни відповідь ВИКЛЮЧНО у форматі JSON-об'єкта з масивом рядків під ключем "hooks". Жодного іншого тексту, вступів чи підсумків поза JSON.
+
+Приклад правильної структури відповіді:
+{"hooks": ["Текст хука 1", "Текст хука 2"]}
+
+---
+Вхідні дані для работы (Тема/Аудиторія/Контекст):
+"${hPrompt || "Загальна тема контенту"}"`;
+
+const userPrompt = `Проаналізуй ЦА та згенеруй ${hCount} хуків мовою ${targetLang} у форматі JSON {"hooks": [...]}`;
+
+const btn = q("btnRunHookGen");
+const oldTxt = btn.textContent;
+btn.textContent = "⏳ Формуємо хуки...";
+btn.disabled = true;
+
+try {
+  let responseText = "";
+  if (isGPT) {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${gptKey}` },
+      body: JSON.stringify({
+        model: model,
+        messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
+        response_format: { type: "json_object" }
+      })
+    });
+    const data = await res.json();
+    if(data.error) throw new Error(data.error.message);
+    responseText = data.choices[0].message.content;
+  } else {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
+        generationConfig: { responseMimeType: "application/json" }
+      })
+    });
+    const data = await res.json();
+    if(data.error) throw new Error(data.error.message);
+    responseText = data.candidates[0].content.parts[0].text;
+  }
+
+  let jsonStart = responseText.indexOf('{');
+  let jsonEnd = responseText.lastIndexOf('}');
+  if (jsonStart === -1 || jsonEnd === -1) throw new Error("ШІ не надіслав структуровані дані JSON.");
+  let cleanJsonText = responseText.substring(jsonStart, jsonEnd + 1);
+  let parsedData = JSON.parse(cleanJsonText);
+
+  if (parsedData.hooks && Array.isArray(parsedData.hooks)) {
+    let newHooks = parsedData.hooks.map(h => h.toString().trim());
+    temporaryGeneratedHooks = temporaryGeneratedHooks.concat(newHooks);
+    localStorage.setItem("ai_temp_hooks", JSON.stringify(temporaryGeneratedHooks));
+    
+    renderGeneratedHooksList();
+    toggleHooksSubModal(false);
+  } else {
+    throw new Error("Некоректна структура JSON від ШІ.");
+  }
+} catch(err) {
+  console.error(err);
+  alert("Помилка генерації хуків: " + err.message);
+} finally {
+  btn.textContent = oldTxt;
+  btn.disabled = false;
+}
+}
+
 async function runAIGeneration() {
 const currentFolder = db.folders[db.cf];
 const notes = currentFolder.notes || [];
 
-const countVal = q("genCount").value;
-const count = parseInt(countVal);
-if (!count || isNaN(count) || count <= 0) return alert("Вкажіть коректну кількість сцен.");
-
 const model = localStorage.getItem("ai_model") || "gpt-4o-mini";
 const gptKey = localStorage.getItem("ai_gpt_key");
 const geminiKey = localStorage.getItem("ai_gemini_key");
-
 const isGPT = !model.startsWith("gemini");
 
 if (isGPT && !gptKey) return alert("Введіть API ключ OpenAI в налаштуваннях.");
@@ -453,20 +729,34 @@ const selectedType = q("scenarioType").value;
 const customPromptText = q("customPrompt").value.trim();
 const targetLang = localStorage.getItem("ai_lang") || "Українська";
 
-let styleInstruction = "";
-if (selectedStyle === "satire") {
-  styleInstruction = "Гостра сатира, іронія, легкий сарказм та уїдливі тези. Ламає шаблони.";
-} else if (selectedStyle === "drama") {
-  styleInstruction = "Глибокий психологічний тригер, створення таємниці та сильного емоційного залучення, що б'є по болях людей.";
-} else if (selectedStyle === "expert") {
-  styleInstruction = "Професійна, авторитетна подача, руйнування міфів, розкриття секретів професії. Тон експерта.";
-} else if (selectedStyle === "comedy") {
-  styleInstruction = "Гумористичний, життєвий стиль, самоіронія, легкі жарти чи кумедний абсурд.";
-} else if (selectedStyle === "mystery") {
-  styleInstruction = "Інтригуючий тон, ефект секретності або 'тільки для своїх'. Створюй недосказаність.";
+localStorage.setItem("ai_scenario_type", selectedType);
+localStorage.setItem("ai_scenario_style", selectedStyle);
+
+let count = 3;
+let hookListInstruction = "";
+let countPhrase = "";
+
+if (currentGenTab === "auto") {
+  const countVal = q("genCount").value;
+  count = parseInt(countVal);
+  if (!count || isNaN(count) || count <= 0) return alert("Вкажіть коретну кількість сцен.");
+  countPhrase = `рівно ${count} НАСТУПНИХ нових окремих сцен. Не редагуй і не змінюй наявні!`;
 } else {
-  styleInstruction = "Класичний, прямолінійний, але сильний блогерський хук. Чітко, по справі, викликає інтерес.";
+  let hooksToUse = temporaryGeneratedHooks;
+  if(hooksToUse.length === 0) return alert("Будь ласка, спочатку згенеруйте та додайте хуки у список.");
+  
+  count = hooksToUse.length;
+  countPhrase = `рівно ${count} нових сцен, кожна з яких СТРОГО відповідає одному з наданих хуків у тому самому порядку. Самостійно нові хуки не придумуй!`;
+  hookListInstruction = `\n⚠️ КРИТИЧНЕ ПРАВИЛО ДЛЯ НАЗВ СЦЕН (title): Тобі ЗАБОРОНЕНО придумувати нові назви або змінювати надані хуки! Скопіюй кожен хук дослівно в поле "title" відповідної сцени. Ось список хуків для генерації:\n${hooksToUse.map((h, i) => `Сцена ${i+1} title: "${h}"`).join("\n")}\n`;
 }
+
+let styleInstruction = "";
+if (selectedStyle === "satire") styleInstruction = "Гостра сатира, іронія, легкий сарказм та уїдливі тези. Ламає шаблони.";
+else if (selectedStyle === "drama") styleInstruction = "Глибокий психологічний тригер, створення таємниці та сильного емоційного залучення, що б'є по болях людей.";
+else if (selectedStyle === "expert") styleInstruction = "Професійна, авторитетна подача, руйнування міфів, розкриття секретів професії. Тон експерта.";
+else if (selectedStyle === "comedy") styleInstruction = "Гумористичний, життєвий стиль, самоіронія, легкі жарти чи кумедний абсурд.";
+else if (selectedStyle === "mystery") styleInstruction = "Інтригуючий тон, ефект секретності або 'тільки для своїх'. Створюй недосказаність.";
+else styleInstruction = "Класичний, прямолінійний, але сильний блогерський хук. Чітко, по справі, викликає інтерес.";
 
 let typeInstruction = "";
 if (selectedType === "storytelling") {
@@ -474,64 +764,58 @@ if (selectedType === "storytelling") {
 } else if (selectedType === "instruction") {
   typeInstruction = "ФОРМАТ ПОКРОКОВОЇ ІНСТРУКЦІЇ/ГАЙДУ. Короткі, зрозумілі кроки 'як зробити щось': Теза 1 (Крок 1), Теза 2 (Крок 2), Теза 3 (Крок 3).";
 } else if (selectedType === "myths") {
-  typeInstruction = "ФОРМАТ РУЙНУВАННЯ МІФІВ. Тези: 1. Озвучення популярної помилки в ніші, у яку всі вірять, 2. Пояснення, чому це брехня, 3. Як діяти правильно на основі фактів.";
+  typeInstruction = "ФОРМАТ РУЙНУВАННЯ МІФІВ. Тези: 1. Озвучення popularної помилки в ніші, у яку всі вірять, 2. Пояснення, чому це брехня, 3. Як діяти правильно на основі фактів.";
 } else if (selectedType === "review") {
   typeInstruction = "ФОРМАТ ОГЛЯДУ / ПОРІВНЯННЯ. Тези: 1. Зіставлення варіантів, 2. Чесні плюси та мінуси кожного підходу, 3. Фінальний вердикт.";
 } else {
-  // Класичний маркетинг з ГНУЧКИМ розміщенням CTA
-  typeInstruction = "МАРКЕТИНГОВИЙ СТРУКТУРНИЙ ФОРМАТ. Тези мають містити: 1. Визначення болю, 2. Посилення проблеми, 3. Вирішення, 4. CTA (Заклик до дії). ⚠️ КРИТИЧНО: Розміщуй CTA гнучко! У деяких сценах став CTA ПЕРЕД фінальним вирішенням, а в деяких сценах — у самому КІНЦІ. Не кидай його завжди в самий кінець масиву!";
+  typeInstruction = "МАРКЕТИНГОВИЙ СТРУКТУРНИЙ ФОРМАТ. Тези мають містити: 1. Визначення болю, 2. Посилення проблеми, 3. Вирішення, 4. CTA (Заклик до дії). ⚠️ КРИТИЧНО: Розміщуй CTA гнучко! У кое-яких сценах став CTA ПЕРЕД фінальним вирішенням, а в деяких сценах — у самому КІНЦІ. Не кидай його завжди в самий кінець масиву!";
 }
 
 let userCustomInstructions = "";
 if (customPromptText) {
-  userCustomInstructions = `\n⚠️ КРИТИЧНО ВАЖЛИВА ВИМОГА ВІД КОРИСТУВАЧА. Обов'язково адаптуй контент під цей опис:\n"${customPromptText}"\n`;
+  userCustomInstructions = `\n⚠️ КРИТИЧНО ВАЖЛИВА ВИМОГА ВІД КОРИСТУВАЧА. Обов'язково адаптуй контент под цей опис:\n"${customPromptText}"\n`;
 }
 
-let projectContext = notes.map((n, idx) => {
-let subItems = (n.descItems || []).map((d, i) => `    - Теза ${i+1}: ${d.text}`).join("\n");
-return `${idx+1}. Сцена: "${n.title}"\n${subItems || "    (Тези відсутні)"}`;
+const checkboxes = document.querySelectorAll(".scene-ctx-cb");
+let selectedNotes = [];
+checkboxes.forEach(cb => {
+  if (cb.checked) {
+    const idx = parseInt(cb.getAttribute("data-idx"));
+    if (notes[idx]) {
+      selectedNotes.push({ note: notes[idx], originalIdx: idx });
+    }
+  }
+});
+
+let projectContext = selectedNotes.map((item) => {
+  let n = item.note;
+  let subItems = (n.descItems || []).map((d, i) => `    - Теза ${i+1}: ${d.text}`).join("\n");
+  return `${item.originalIdx+1}. Сцена: "${n.title}"\n${subItems || "    (Тези відсутні)"}`;
 }).join("\n\n");
 
-const systemPrompt = `Ти — досвідчений ШІ-сценарист та контент-стратег. Твоє завдання — проаналізувати наявні сцени проекту та написати логічне продовження історії у вигляді нових сцен.
+const systemPrompt = `Ти — досвідчений ШІ-сценарист та контент-стратег. Твоє завдання — проаналізувати наявні сцени проекту та написати продовження історії у вигляді нових змін.
 
-Поточний список сцен у проекті:
-${projectContext || "(проект порожній, придумай початок)"}
+Поточний список змін у проекті (враховуй тільки їх як контекст):
+${projectContext || "(обраний контекст порожній, придумай початок з нуля)"}
 
-Згенеруй рівно ${count} НАСТУПНИХ нових окремих сцен. Не редагуй і не змінюй наявні!
+Згенеруй ${countPhrase}
+${hookListInstruction}
 ${userCustomInstructions}
 
 ⚠️ СУВОРІ КРИТИЧНІ ВИМОГИ ДО МОВИ ТА СТРУКТУРИ:
-
 1. МОВА ГЕНЕРАЦІЇ: Абсолютно вся відповідь повинна бути написана строго мовою: ${targetLang}.
-
-2. НАЗВА СЦЕНИ (title) — це ХУК ДЛЯ ГЛЯДАЧА. Вона має бути написана строго у стилі: ${styleInstruction}
-   ⚠️ ХУК МАЄ БУТИ ПОВНІСТЮ ЗАКІНЧЕНИМ ТА ЗРОЗУМІЛИМ ІЗ ПЕРШОЇ СЕКУНДИ. Заборонено робити обірвані фрази (наприклад, не пиши 'Якщо ви думаєте, що людям нецікаво, спокійно, їм просто нецікаво все підряд' — це незрозуміло). Хук мусить чітко доносити суть теми одразу, без загадок.
-
+2. НАЗВА СЦЕНИ (title): ${currentGenTab === "auto" ? "Створюй інтригуючі хуки, які викликають цікавість і бажання дивитися далі. Уникай банальних жартів і завершених думок. Стиль: " + styleInstruction : "Скопіюй наданий хук один в один без жодних змін."}
 3. ВНУТРІШНІ ПУНКТИ/ОПИСИ (descItems) — це МАКСИМАЛЬНО КОРОТКА шпаргалка про що говорити автору (як для дитини).
    - 👉 Логіка структури: ${typeInstruction}
-   - ⚠️ СУВОРЕ ТАБУ на будь-які ШІ-префікси, вступні технічні фрази, маркери чи підзаголовки! (Категорично ЗАБОРОНЕНО писати: 'Назви проблему без цукру:', 'Крок 1:', 'Проблема:', 'Вступ:', 'CTA:', 'Вирішення:'). 
-   - Пункт має починатися ОДРАЗУ з конкретної, короткої вказівки до мовлення.
-   - Формат початку тези завжди починай з дієслова дії: "Скажи, що...", "Поясни, що...", "Пожалійся на те, що...", "Заклич зробити...".
-   - Пиши дуже лаконічно, просто і без води. Замість довгих описів пиши прямо, як дитині: 'Скажи, що людям здається, ніби аудиторія байдужа, вони не лайкають, і здається, що ніхто не слухає'.
-   - ❌ КАТЕГОРИЧНО ЗАБОРОНЕНО писати фізичні дії, візуальні команди чи вказівки для камери ('покажи телефон', 'посміхнись'). Тільки тези розмови!
-   - Згенеруй від 2 до 4 таких точних підказок для розмови для кожної сцени.
+   - ⚠️ СУВОРЕ ТАБУ на будьякі ШІ-префікси, технічні фрази, маркери чи підзаголовки! (Категорично ЗАБОРОНЕНО писати: 'Назви проблему без цукру:', 'Крок 1:', 'CTA:', 'Вирішення:'). 
+   - Пункт має починатися ОДРАЗУ з дієслова дії: "Скажи, що...", "Поясни, що...", "Пожалійся на те, що...", "Заклич зробити...".
+   - Пиши дуже лаконічно, просто і без води. Приклад: 'Скажи, що людям здається, ніби аудиторія байдужа, вони не лайкають, і здається, що ніхто не слухає'.
+   - ❌ КАТЕГОРИЧНО ЗАБОРОНЕНО вказівки для камери чи фізичні дії. Тільки тези розмови!
+   - Згенеруй від 2 до 4 таких підказок для розмови для кожної сцени.
 
-Поверни відповідь виключно у форматі JSON-об'єкта, що містить масив сцен під ключем "scenes". Жодного тексту крім JSON.
+Поверни відповідь виключно у форматі JSON-об'єкта {"scenes": [...]}. Жодного тексту крім JSON.`;
 
-Приклад правильної структури тез:
-{
-  "scenes": [
-    {
-      "title": "[Повністю закінчений зрозумілий хук]",
-      "descItems": [
-        "Скажи, що людям здається, ніби аудиторія байдужа, вони не лайкають, і здається, що ніхто не слухає у порожню кімнату",
-        "Поясни, що насправді контент просто занадто складний і..."
-      ]
-    }
-  ]
-}`;
-
-const userPrompt = `Проаналізуй контекст, врахуй побажання користувача і згенеруй рівно ${count} наступних сцен. Мова: ${targetLang}. Формат: ${selectedType}. Заголовки — повністю закінчені хуки у стилі '${selectedStyle}', а описи всередині — максимально короткі (як для дитини) підказки про що говорити без ШІ-заголовків і префіксів. Відповідь — суворо JSON об'єкт {"scenes": [...]}`;
+const userPrompt = `Проаналізуй контекст і згенеруй рівно ${count} сцен. Мова: ${targetLang}. Формат: ${selectedType}. Заголовки мають відповідати обраній стратегії, а описи всередині — максимально короткі підказки про що говорити без ШІ-заголовків і префіксів. Відповідь — суворо JSON об'єкт {"scenes": [...]}`;
 
 const btnGen = q("btnStartGen");
 const originalText = btnGen.textContent;
